@@ -40,7 +40,7 @@ namespace AxisBIWebAPI
         {
             WorkItem wi = FindTaks(ross, user);
             int id = wi.id;
-            decimal remainingwork = wi.GetRemainingWork();
+            decimal remainingwork = hours;
             var task = CreateTask(ross, date, hours, user,id);
             DoneTask(task.id);
             if (remainingwork <= hours)
