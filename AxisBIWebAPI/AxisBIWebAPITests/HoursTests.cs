@@ -12,14 +12,17 @@ namespace AxisBIWebAPI.Tests
     [TestClass()]
     public class HoursTests
     {
+        int idTask;
+
         [TestMethod()]
         public void CreateTaskTest()
         {
             Hours h = new Hours();
             h.TeamProject = "TestScrum";
             h.url = "https://axisbi.VisualStudio.com/DefaultCollection/";
-            var actual = h.CreateTask("ROSS123456", new DateTime(2016, 1, 1), 1, "Alexandre Campos Silva <alexde@microsoft.com>", 3);
+            var actual = h.CreateTask("ROSS123456", new DateTime(2016, 1, 1), 10, "Alexandre Campos Silva <alexde@microsoft.com>", 3);
 
+            idTask = actual.id;
             Assert.AreEqual(actual.rev, 1);
             //Assert.AreEqual(actual.fields[);
         }
@@ -30,7 +33,7 @@ namespace AxisBIWebAPI.Tests
 
             Hours h = new Hours();
             h.url = "https://axisbi.VisualStudio.com/DefaultCollection/";
-            string json = h.UpdateRemainigWork(81, 8);
+            string json = h.UpdateRemainigWork(186, 8);
             bool contains = json.IndexOf("\"Microsoft.VSTS.Scheduling.RemainingWork\":8") > 0;
             var wi = JsonConvert.DeserializeObject<WorkItem>(json);
 
@@ -90,15 +93,38 @@ namespace AxisBIWebAPI.Tests
         }
 
         [TestMethod()]
+        public void FindTaksTest_OwnerwithoutTask()
+        {
+            Hours h = new Hours();
+            h.TeamProject = "TestScrum";
+            h.url = "https://axisbi.VisualStudio.com/DefaultCollection/";
+            var actual = h.FindTaks("ROSS123456", "Ricardo de Almeida <ricdealm@microsoft.com>");
+
+            Assert.IsTrue(actual.id>0);
+        }
+
+        [TestMethod()]
         public void LogarHoras()
         {
 
             Hours h = new Hours();
             h.TeamProject = "TestScrum";
             h.url = "https://axisbi.VisualStudio.com/DefaultCollection/";
-            h.LogarHoras("ROSS123456", new DateTime(2016,1,3), 8, "Alexandre Campos Silva <alexde@microsoft.com>");
+            h.LogarHoras("ROSS123456", new DateTime(2016, 1, 3), 8, "Alexandre Campos Silva <alexde@microsoft.com>");
 
             Assert.IsTrue(true);
+        }
+
+        [TestMethod()]
+        public void ChangeStatusTaskTest()
+        {
+
+            Hours h = new Hours();
+            h.url = "https://axisbi.VisualStudio.com/DefaultCollection/";
+            var wi = h.ChangeStatusTask(81, "In Progress");
+
+            Assert.AreEqual("In Progress", wi.fields["System.State"].ToString());
+
         }
     }
 

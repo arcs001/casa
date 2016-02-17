@@ -23,7 +23,7 @@ namespace AxisBIWebAPI
             WorkItem wi = new WorkItem(ross, date, hours, user);
             WorkItem ret = JsonConvert.DeserializeObject<WorkItem>(WebClient.WorkItemPatch(string.Concat(url, TeamProject, "/_apis/wit/workitems/$task?api-version=1.0"), wi).Result);
 
-            DoneTask(ret.id);
+            
             AddLink(ret.id, idParent);
 
             return ret;
@@ -41,7 +41,8 @@ namespace AxisBIWebAPI
             WorkItem wi = FindTaks(ross, user);
             int id = wi.id;
             decimal remainingwork = wi.GetRemainingWork();
-            CreateTask(ross, date, hours, user,id);
+            var task = CreateTask(ross, date, hours, user,id);
+            DoneTask(task.id);
             if (remainingwork <= hours)
             {
                 DoneTask(id);
@@ -68,6 +69,17 @@ namespace AxisBIWebAPI
                 return  JsonConvert.DeserializeObject<WorkItem>(WebClient.WorkItemGet( wis.WorkItems[0].url).Result) ;
             }
 
+            WIQ = "{\"query\": \"SELECT [System.Id], [System.WorkItemType], [System.Title], [System.AssignedTo], [System.State], [System.Tags], [Microsoft.VSTS.Scheduling.RemainingWork] FROM WorkItems WHERE [System.TeamProject] = @project  AND  [System.WorkItemType] = 'Task'  AND ( [System.State] = 'To Do'  OR  [System.State] = 'In Progress' ) ORDER BY [Microsoft.VSTS.Scheduling.RemainingWork] desc\"}";
+
+
+
+            json = WebClient.WorkItemPost(string.Format("{0}{1}/_apis/wit/wiql?api-version=1.0", url, TeamProject), WIQ).Result;
+            Objeto = new { WorkItems = new WorkItem[0] };
+            wis = JsonConvert.DeserializeAnonymousType(json, Objeto);
+            if (wis.WorkItems.Count() > 0)
+            {
+                return JsonConvert.DeserializeObject<WorkItem>(WebClient.WorkItemGet(wis.WorkItems[0].url).Result);
+            }
 
             throw new NotImplementedException();
         }
